@@ -8,25 +8,23 @@ import helper_methods
 
 
 def currentValues():
-    page_url = 'http://www.delhisldc.org/Redirect.aspx?Loc=0804'
+    page_url = 'http://www.delhisldc.org/Redirect.aspx'
     r = uReq(page_url)
     soup = BeautifulSoup(r.read(), "html.parser")
 
     data_dict = {}
     
-    current_revision = helper_methods.read_datetime_from_span_id(soup, "ContentPlaceHolder3_LblDate",
-                                                                 '[.*]DD/MM/YYYY HH:mm:ss')
+    current_revision = helper_methods.read_datetime_from_span_id(soup, "DynamicData1_LblDate",
+                                                                 'DD-MMM-YYYY hh:mm:ss A')
     data_dict['timestamp'] = current_revision.datetime
-    delhi_load = helper_methods.read_value_from_span_id(soup, "ContentPlaceHolder3_LblLoad")
+    delhi_load = helper_methods.read_value_from_span_id(soup, "DynamicData1_LblLoad")
     data_dict['delhi_load'] = delhi_load
-    schedule = helper_methods.read_value_from_span_id(soup, "ContentPlaceHolder3_LblCurrScheduledAllocation")
+    schedule = helper_methods.read_value_from_span_id(soup, "DynamicData1_LblCurrScheduledAllocation")
     data_dict['schedule'] = schedule
-    drawl = helper_methods.read_value_from_span_id(soup, "ContentPlaceHolder3_LblCurrDrawal")
+    drawl = helper_methods.read_value_from_span_id(soup, "DynamicData1_LblCurrDrawal")
     data_dict['drawl'] = drawl
-    delhi_gen = helper_methods.read_value_from_span_id(soup, "ContentPlaceHolder3_LblCurrGen")
+    delhi_gen = helper_methods.read_value_from_span_id(soup, "DynamicData1_LblCurrGen")
     data_dict['delhi_generation'] = delhi_gen
-    max_load = soup.find("span", id="ContentPlaceHolder3_LblMaxToday")
-    min_load = soup.find("span", id="ContentPlaceHolder3_LblMinToday")
     
     return data_dict
 
