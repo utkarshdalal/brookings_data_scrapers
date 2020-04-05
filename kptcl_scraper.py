@@ -110,6 +110,15 @@ def fetch_production_by_generator(session):
     cgs_value = helper_methods.read_value_from_span_id(html, 'lblcgs')
     generation['cgs_generation'] = cgs_value
 
+    ncep_value = helper_methods.read_value_from_span_id(html, 'lblncep')
+    generation['ncep_generation'] = ncep_value
+
+    total_value = helper_methods.read_value_from_span_id(html, 'lbltotgen')
+    generation['total_generation'] = total_value
+
+    frequency_value = helper_methods.read_value_from_span_id(html, 'lblfreq')
+    generation['frequency_hz'] = frequency_value
+
     # Hydro production
     hydro_value = sharavati_value + nagjhari_value + varahi_value + kodsalli_value \
                   + kadra_value + gerusoppa_value + jog_value + lph_value + supa_value \
@@ -189,6 +198,9 @@ def fetch_escom_demand(session):
     actual_total_load = helper_methods.read_value_from_span_id(escom_html, 'Label26')
     escom_demand['scheduled_total_load'] = scheduled_total_load
     escom_demand['actual_total_load'] = actual_total_load
+
+    frequency_value = helper_methods.read_value_from_span_id(escom_html, 'Label1')
+    escom_demand['frequency_hz'] = frequency_value
 
     return escom_demand
 

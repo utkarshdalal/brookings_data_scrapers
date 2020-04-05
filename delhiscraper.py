@@ -25,6 +25,8 @@ def currentValues():
     data_dict['drawl'] = drawl
     delhi_gen = helper_methods.read_value_from_span_id(soup, "DynamicData1_LblCurrGen")
     data_dict['delhi_generation'] = delhi_gen
+    freq = helper_methods.read_value_from_span_id(soup, 'DynamicData1_LblFrequency')
+    data_dict['frequency_hz'] = freq
     
     return data_dict
 
