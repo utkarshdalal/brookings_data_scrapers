@@ -82,27 +82,31 @@ def get_merit_data(conn):
 
 def calculate_corrected_data(cursor2, data_dict, demand_met, gas_generation, hydro_generation, nuclear_generation,
                              renewable_generation, thermal_generation, total_generation):
-    if total_generation <= 0.95 * demand_met or total_generation >= 1.05 * demand_met:
-        cursor2.execute(
-            f'select timestamp, thermal_generation_corrected, gas_generation_corrected, hydro_generation_corrected, '
-            f'nuclear_generation_corrected, renewable_generation_corrected, demand_met from '
-            f'merit_india_data_rounded_corrected where timestamp < "{current_datetime}" '
-            f'order by timestamp desc limit 1')
-        for r2 in cursor2:
-            previous_thermal = r2[1]
-            previous_gas = r2[2]
-            previous_hydro = r2[3]
-            previous_nuclear = r2[4]
-            previous_renewable = r2[5]
-            previous_demand_met = r2[6]
+    cursor2.execute(
+        f'select timestamp, thermal_generation_corrected, gas_generation_corrected, hydro_generation_corrected, '
+        f'nuclear_generation_corrected, renewable_generation_corrected, demand_met from '
+        f'merit_india_data_rounded_corrected where timestamp < "{current_datetime}" '
+        f'order by timestamp desc limit 1')
+    for r2 in cursor2:
+        previous_timestamp = r2[0]
+        previous_thermal = r2[1]
+        previous_gas = r2[2]
+        previous_hydro = r2[3]
+        previous_nuclear = r2[4]
+        previous_renewable = r2[5]
+        previous_demand_met = r2[6]
 
-            current_thermal = thermal_generation
-            current_gas = gas_generation
-            current_hydro = hydro_generation
-            current_nuclear = nuclear_generation
-            current_renewable = renewable_generation
-            current_demand_met = demand_met
+        current_thermal = thermal_generation
+        current_gas = gas_generation
+        current_hydro = hydro_generation
+        current_nuclear = nuclear_generation
+        current_renewable = renewable_generation
+        current_demand_met = demand_met
 
+        if total_generation <= 0.95 * demand_met or total_generation >= 1.05 * demand_met or (
+                (current_thermal - previous_thermal)/current_thermal >= 0.7 or \
+                (current_thermal - previous_thermal)/current_thermal <= -0.4 or \
+                (current_gas - previous_gas)/current_gas >= 80.0):
             corrected_thermal = current_thermal
             previous_thermal_ratio = previous_thermal / previous_demand_met
             current_thermal_ratio = current_thermal / current_demand_met
@@ -138,6 +142,7 @@ def calculate_corrected_data(cursor2, data_dict, demand_met, gas_generation, hyd
             data_dict['nuclear_generation_corrected'] = corrected_nuclear
             data_dict['hydro_generation_corrected'] = corrected_hydro
             data_dict['renewable_generation_corrected'] = corrected_renewable
+
     return data_dict
 
 
