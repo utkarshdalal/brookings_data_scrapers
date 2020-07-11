@@ -43,7 +43,8 @@ def get_merit_data(conn):
         nuclear_generation = float(row_values[4])
         hydro_generation = float(row_values[5])
         renewable_generation = float(row_values[6])
-        total_generation = thermal_generation + gas_generation + nuclear_generation + hydro_generation + renewable_generation
+        total_generation = thermal_generation + gas_generation + nuclear_generation + hydro_generation + \
+                           renewable_generation
         utc_timestamp = datetime.strptime(current_datetime, "%Y-%m-%dT%H:%M:%S")
         rounded_timestamp_15 = utc_timestamp - timedelta(minutes=utc_timestamp.minute % 15,
                                                          seconds=utc_timestamp.second,
@@ -65,9 +66,10 @@ def get_merit_data(conn):
         data_dict['timestamp'] = utc_timestamp
         data_dict['5_min_rounded_timestamp'] = rounded_timestamp_5
         data_dict['15_min_rounded_timestamp'] = rounded_timestamp_15
+        data_dict['timestamps_frozen_for'] = 0
         data_dict = calculate_corrected_data(cursor2, data_dict, demand_met, gas_generation, hydro_generation,
                                              nuclear_generation, renewable_generation, thermal_generation,
-                                             total_generation)
+                                             total_generation, current_datetime)
 
         helper_methods.insert_into_table('merit_india_data_rounded_corrected_copy', data_dict, cursor, conn)
 
@@ -81,28 +83,34 @@ def get_merit_data(conn):
 
 
 def calculate_corrected_data(cursor2, data_dict, demand_met, gas_generation, hydro_generation, nuclear_generation,
-                             renewable_generation, thermal_generation, total_generation):
-    if total_generation <= 0.95 * demand_met or total_generation >= 1.05 * demand_met:
-        cursor2.execute(
-            f'select timestamp, thermal_generation_corrected, gas_generation_corrected, hydro_generation_corrected, '
-            f'nuclear_generation_corrected, renewable_generation_corrected, demand_met from '
-            f'merit_india_data_rounded_corrected where timestamp < "{current_datetime}" '
-            f'order by timestamp desc limit 1')
-        for r2 in cursor2:
-            previous_thermal = r2[1]
-            previous_gas = r2[2]
-            previous_hydro = r2[3]
-            previous_nuclear = r2[4]
-            previous_renewable = r2[5]
-            previous_demand_met = r2[6]
+                             renewable_generation, thermal_generation, total_generation, current_datetime):
+    cursor2.execute(
+        f'select timestamp, thermal_generation_corrected, gas_generation_corrected, hydro_generation_corrected, '
+        f'nuclear_generation_corrected, renewable_generation_corrected, demand_met, timestamps_frozen_for from '
+        f'merit_india_data_rounded_corrected_copy where timestamp < "{current_datetime}" '
+        f'order by timestamp desc limit 1')
+    for r2 in cursor2:
+        previous_timestamp = r2[0]
+        previous_thermal = r2[1]
+        previous_gas = r2[2]
+        previous_hydro = r2[3]
+        previous_nuclear = r2[4]
+        previous_renewable = r2[5]
+        previous_demand_met = r2[6]
+        previous_timestamps_frozen_for = r2[7]
 
-            current_thermal = thermal_generation
-            current_gas = gas_generation
-            current_hydro = hydro_generation
-            current_nuclear = nuclear_generation
-            current_renewable = renewable_generation
-            current_demand_met = demand_met
+        current_thermal = thermal_generation
+        current_gas = gas_generation
+        current_hydro = hydro_generation
+        current_nuclear = nuclear_generation
+        current_renewable = renewable_generation
+        current_demand_met = demand_met
 
+        if (previous_thermal == current_thermal and previous_gas == current_gas and previous_hydro == current_hydro
+                and previous_nuclear == current_nuclear and previous_renewable == current_renewable):
+            data_dict['timestamps_frozen_for'] = previous_timestamps_frozen_for + 1
+
+        if total_generation <= 0.95 * demand_met or total_generation >= 1.05 * demand_met:
             corrected_thermal = current_thermal
             previous_thermal_ratio = previous_thermal / previous_demand_met
             current_thermal_ratio = current_thermal / current_demand_met
@@ -138,6 +146,7 @@ def calculate_corrected_data(cursor2, data_dict, demand_met, gas_generation, hyd
             data_dict['nuclear_generation_corrected'] = corrected_nuclear
             data_dict['hydro_generation_corrected'] = corrected_hydro
             data_dict['renewable_generation_corrected'] = corrected_renewable
+
     return data_dict
 
 
