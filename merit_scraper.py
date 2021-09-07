@@ -69,7 +69,7 @@ def get_merit_data(conn):
                                              nuclear_generation, renewable_generation, thermal_generation,
                                              total_generation)
 
-        helper_methods.insert_into_table('merit_india_data_rounded_corrected_copy', data_dict, cursor, conn)
+        helper_methods.insert_into_table('merit_india_data_rounded_corrected', data_dict, cursor, conn)
 
     except Exception as e:
         print(f'Could not write data to rds! {str(e)}')
