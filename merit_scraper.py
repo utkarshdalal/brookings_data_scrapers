@@ -6,14 +6,18 @@ import os
 import logging
 import pymysql
 import helper_methods
+import requests
 
 
 def get_merit_data(conn):
     meritindia_url = 'http://www.meritindia.in'
     current_datetime = datetime.utcnow().replace(microsecond=0).isoformat()
-    page = urllib.request.urlopen(meritindia_url)
+    #page = urllib.request.urlopen(meritindia_url)
 
-    html_content = BeautifulSoup(page, 'html.parser')
+    #html_content = BeautifulSoup(page, 'html.parser')
+    
+    page = requests.get('https://meritindia.in')
+    html_content = BeautifulSoup(page.content, 'html5lib')
 
     column_headings = ['TIMESTAMP']
     row_values = [current_datetime]
