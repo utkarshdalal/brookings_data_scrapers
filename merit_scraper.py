@@ -17,7 +17,7 @@ def get_merit_data(conn):
     #html_content = BeautifulSoup(page, 'html.parser')
     
     page = requests.get('https://meritindia.in')
-    html_content = BeautifulSoup(page.content, 'html5lib')
+    html_content = BeautifulSoup(page.content, 'html.parser')
 
     column_headings = ['TIMESTAMP']
     row_values = [current_datetime]
