@@ -151,7 +151,7 @@ def run():
     dbname = os.environ['DB']
     user = os.environ['USER']
     password = os.environ['PASSWORD']
-    conn = pymysql.connect(host, user=user, port=port,
+    conn = pymysql.connect(host=host, user=user, port=port,
                            passwd=password, db=dbname)
     get_merit_data(conn)
 
